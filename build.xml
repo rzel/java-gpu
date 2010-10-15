@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Parallel" default="dist" basedir=".">
+    <description>Builds and packages a parallelising JVM compiler.</description>
+
+    <!-- Build Properties -->
+    <property name="src"       location="src" />
+    <property name="build"     location="build" />
+    <property name="dist"      location="dist" />
+    <property name="mainclass" value="tools.Parallelise" />
+    <path id="classpath">
+        <fileset dir="lib">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <target name="init">
+        <tstamp/>
+        <mkdir dir="${build}" />
+    </target>
+
+    <target name="compile" depends="init" description="Compile">
+        <javac srcdir="${src}/java" destdir="${build}" debug="true">
+            <classpath refid="classpath" />
+        </javac>
+    </target>
+
+    <target name="dist" depends="compile" description="Generate the distribution">
+        <mkdir dir="${dist}/lib" />
+        <mkdir dir="${dist}/include" />
+
+        <pathconvert property="mf.classpath" pathsep=" ">
+            <path refid="classpath" />
+            <mapper>
+                <chainedmapper>
+                    <flattenmapper />
+                    <globmapper from="*.jar" to="lib/*.jar" />
+                </chainedmapper>
+            </mapper>
+        </pathconvert>
+
+        <jar jarfile="${dist}/Parallel.jar" basedir="${build}">
+            <manifest>
+                <attribute name="Main-Class" value="${mainclass}" />
+                <attribute name="Class-Path" value=". ${mf.classpath}" />
+            </manifest>
+        </jar>
+
+        <copy todir="${dist}/include">
+            <fileset dir="${src}/include" includes="**/*.h" />
+        </copy>
+
+        <copy todir="${dist}/lib">
+            <fileset dir="lib" includes="*.jar" />
+        </copy>
+    </target>
+
+    <target name="clean" description="Clean up">
+        <delete dir="${build}" />
+        <delete dir="${dist}" />
+    </target>
+</project>
